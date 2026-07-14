@@ -32,4 +32,9 @@ public class AuthenticationResponse {
      * Email address of the authenticated user.
      */
     private String email;
+
+    /**
+     * JWT access token issued after successful authentication.
+     */
+    private String token;
 }
