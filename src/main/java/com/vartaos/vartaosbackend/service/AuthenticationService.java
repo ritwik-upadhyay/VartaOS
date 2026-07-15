@@ -4,11 +4,12 @@ import com.vartaos.vartaosbackend.dto.auth.AuthenticationResponse;
 import com.vartaos.vartaosbackend.dto.auth.LoginRequest;
 import com.vartaos.vartaosbackend.dto.auth.RegisterRequest;
 import com.vartaos.vartaosbackend.entity.User;
+import com.vartaos.vartaosbackend.entity.Workspace;
 import com.vartaos.vartaosbackend.exception.AuthenticationException;
 import com.vartaos.vartaosbackend.repository.UserRepository;
+import com.vartaos.vartaosbackend.repository.WorkspaceRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.vartaos.vartaosbackend.service.JwtService;
 
 /**
  * Service responsible for authentication and account-related
@@ -21,14 +22,17 @@ public class AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final WorkspaceRepository workspaceRepository;
 
 
     public AuthenticationService(UserRepository userRepository,
                                  PasswordEncoder passwordEncoder,
-                                 JwtService jwtService) {
+                                 JwtService jwtService,
+                                 WorkspaceRepository workspaceRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.workspaceRepository = workspaceRepository;
     }
 
     public AuthenticationResponse register(RegisterRequest request) {
@@ -52,6 +56,17 @@ public class AuthenticationService {
 
         //Save to database
         userRepository.save(user);
+
+        // Create a personalized default workspace for the new user
+        String displayName = user.getUsername().substring(0, 1).toUpperCase()
+                + user.getUsername().substring(1);
+
+        Workspace workspace = Workspace.builder()
+                .name(displayName + "'s Workspace")
+                .user(user)
+                .build();
+
+        workspaceRepository.save(workspace);
 
         //Return response
         return AuthenticationResponse.builder()
