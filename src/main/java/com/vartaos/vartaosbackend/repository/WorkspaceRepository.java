@@ -7,5 +7,9 @@ import com.vartaos.vartaosbackend.entity.User;
 
 
 public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
+
+    /**
+     * Finds the workspace belonging to the given user.
+     */
     Optional<Workspace> findByUser(User user);
 }
