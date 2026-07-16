@@ -3,6 +3,7 @@ package com.vartaos.vartaosbackend.service;
 import com.vartaos.vartaosbackend.dto.note.CreateNoteRequest;
 import com.vartaos.vartaosbackend.dto.note.NoteResponse;
 import com.vartaos.vartaosbackend.dto.note.UpdateNoteRequest;
+import com.vartaos.vartaosbackend.dto.note.MoveNoteRequest;
 import com.vartaos.vartaosbackend.entity.Folder;
 import com.vartaos.vartaosbackend.entity.Note;
 import com.vartaos.vartaosbackend.repository.FolderRepository;
@@ -124,5 +125,39 @@ public class NoteService {
 
         // Delete the note
         noteRepository.delete(note);
+    }
+
+    /**
+     * Moves a note to another folder.
+     *
+     * @param id      ID of the note to move.
+     * @param request Request containing the destination folder ID.
+     * @return Updated note information.
+     */
+    public NoteResponse moveNote(Long id,
+                                 MoveNoteRequest request) {
+
+        // Find the note
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Note not found."));
+
+        // Find destination folder
+        Folder folder = folderRepository.findById(request.getFolderId())
+                .orElseThrow(() -> new RuntimeException("Folder not found."));
+
+        // Move note
+        note.setFolder(folder);
+
+        // Save updated note
+        noteRepository.save(note);
+
+        // Return updated response
+        return NoteResponse.builder()
+                .id(note.getId())
+                .title(note.getTitle())
+                .content(note.getContent())
+                .type(note.getType())
+                .folderId(folder.getId())
+                .build();
     }
 }

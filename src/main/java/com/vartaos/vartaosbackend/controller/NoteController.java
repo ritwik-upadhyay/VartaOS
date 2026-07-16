@@ -3,6 +3,7 @@ package com.vartaos.vartaosbackend.controller;
 import com.vartaos.vartaosbackend.dto.note.CreateNoteRequest;
 import com.vartaos.vartaosbackend.dto.note.NoteResponse;
 import com.vartaos.vartaosbackend.dto.note.UpdateNoteRequest;
+import com.vartaos.vartaosbackend.dto.note.MoveNoteRequest;
 import com.vartaos.vartaosbackend.service.NoteService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -71,5 +72,19 @@ public class NoteController {
     public void deleteNote(@PathVariable Long id) {
 
         noteService.deleteNote(id);
+    }
+
+    /**
+     * Moves a note to another folder.
+     *
+     * @param id      ID of the note to move.
+     * @param request Request containing the destination folder ID.
+     * @return Updated note information.
+     */
+    @PutMapping("/{id}/move")
+    public NoteResponse moveNote(@PathVariable Long id,
+                                 @RequestBody MoveNoteRequest request) {
+
+        return noteService.moveNote(id, request);
     }
 }
