@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Represents a folder inside a workspace.
@@ -77,4 +78,13 @@ public class Folder {
      */
     @OneToMany(mappedBy = "parentFolder")
     private List<Folder> childFolders;
+
+    /**
+     * Notes contained inside this folder.
+     *
+     * One folder can contain multiple notes.
+     */
+    @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<Note> notes = new ArrayList<>();
 }
