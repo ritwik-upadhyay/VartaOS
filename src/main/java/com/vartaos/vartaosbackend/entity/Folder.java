@@ -76,15 +76,24 @@ public class Folder {
     /**
      * Child folders contained within this folder.
      */
-    @OneToMany(mappedBy = "parentFolder")
-    private List<Folder> childFolders;
+    @OneToMany(
+            mappedBy = "parentFolder",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<Folder> childFolders = new ArrayList<>();
 
     /**
      * Notes contained inside this folder.
      *
      * One folder can contain multiple notes.
      */
-    @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL)
+    @OneToMany(
+            mappedBy = "folder",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     @Builder.Default
     private List<Note> notes = new ArrayList<>();
 }

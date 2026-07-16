@@ -19,4 +19,31 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
      * @return List of notes.
      */
     List<Note> findByFolder(Folder folder);
+
+    /**
+     * Finds notes whose titles contain the given keyword,
+     * ignoring letter case.
+     *
+     * @param keyword Search keyword.
+     * @return Matching notes.
+     */
+    List<Note> findByTitleContainingIgnoreCase(String keyword);
+
+    /**
+     * Finds notes whose content contains the given keyword,
+     * ignoring letter case.
+     *
+     * @param keyword Search keyword.
+     * @return Matching notes.
+     */
+    List<Note> findByContentContainingIgnoreCase(String keyword);
+
+    /**
+     * Finds notes whose title exactly matches the given keyword,
+     * ignoring letter case.
+     *
+     * @param keyword Search keyword.
+     * @return Matching notes.
+     */
+    List<Note> findByTitleIgnoreCase(String keyword);
 }

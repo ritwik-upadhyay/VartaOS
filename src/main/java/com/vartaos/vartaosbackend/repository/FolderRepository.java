@@ -21,4 +21,13 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
      * Returns all child folders of the given parent folder.
      */
     List<Folder> findByParentFolder(Folder parentFolder);
+
+    /**
+     * Finds folders whose names contain the given keyword,
+     * ignoring letter case.
+     *
+     * @param keyword Search keyword.
+     * @return Matching folders.
+     */
+    List<Folder> findByNameContainingIgnoreCase(String keyword);
 }
