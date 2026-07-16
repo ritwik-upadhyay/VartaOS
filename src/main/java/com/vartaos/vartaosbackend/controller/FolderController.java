@@ -2,6 +2,7 @@ package com.vartaos.vartaosbackend.controller;
 
 import com.vartaos.vartaosbackend.dto.folder.CreateFolderRequest;
 import com.vartaos.vartaosbackend.dto.folder.FolderResponse;
+import com.vartaos.vartaosbackend.dto.folder.MoveFolderRequest;
 import com.vartaos.vartaosbackend.service.FolderService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
@@ -10,6 +11,8 @@ import com.vartaos.vartaosbackend.dto.folder.RenameFolderRequest;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import com.vartaos.vartaosbackend.dto.folder.FolderDisplayOrderRequest;
+import org.springframework.http.ResponseEntity;
 import java.util.List;
 
 /**
@@ -86,5 +89,33 @@ public class FolderController {
     public void deleteFolder(@PathVariable Long folderId) {
 
         folderService.deleteFolder(folderId);
+    }
+
+    /**
+     * Moves a folder to another parent folder.
+     *
+     * @param id      ID of the folder to move.
+     * @param request Request containing the new parent folder ID.
+     * @return Updated folder information.
+     */
+    @PutMapping("/{id}/move")
+    public FolderResponse moveFolder(@PathVariable Long id,
+                                     @RequestBody MoveFolderRequest request) {
+
+        return folderService.moveFolder(id, request);
+    }
+
+    /**
+     * Updates the display order of multiple folders.
+     *
+     * @param requests List containing folder IDs and their new display order.
+     */
+    @PutMapping("/display-order")
+    public ResponseEntity<Void> updateDisplayOrder(
+            @RequestBody List<FolderDisplayOrderRequest> requests) {
+
+        folderService.updateDisplayOrder(requests);
+
+        return ResponseEntity.ok().build();
     }
 }

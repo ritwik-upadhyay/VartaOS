@@ -2,6 +2,7 @@ package com.vartaos.vartaosbackend.service;
 
 import com.vartaos.vartaosbackend.dto.folder.CreateFolderRequest;
 import com.vartaos.vartaosbackend.dto.folder.FolderResponse;
+import com.vartaos.vartaosbackend.dto.folder.MoveFolderRequest;
 import com.vartaos.vartaosbackend.entity.Folder;
 import com.vartaos.vartaosbackend.entity.User;
 import com.vartaos.vartaosbackend.entity.Workspace;
@@ -11,6 +12,9 @@ import com.vartaos.vartaosbackend.repository.UserRepository;
 import com.vartaos.vartaosbackend.repository.WorkspaceRepository;
 import org.springframework.stereotype.Service;
 import com.vartaos.vartaosbackend.dto.folder.RenameFolderRequest;
+import com.vartaos.vartaosbackend.dto.folder.FolderDisplayOrderRequest;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -179,5 +183,65 @@ public class FolderService {
                 )
                 .children(children)
                 .build();
+    }
+
+    /**
+     * Moves a folder to another parent folder.
+     *
+     * @param id      ID of the folder to move.
+     * @param request Request containing the new parent folder ID.
+     * @return Updated folder information.
+     */
+    public FolderResponse moveFolder(Long id,
+                                     MoveFolderRequest request) {
+
+        // Find the folder to move
+        Folder folder = folderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Folder not found."));
+
+        // New parent folder (can be null for a root folder)
+        Folder newParent = null;
+
+        if (request.getParentFolderId() != null) {
+            newParent = folderRepository.findById(request.getParentFolderId())
+                    .orElseThrow(() -> new RuntimeException("Parent folder not found."));
+        }
+
+        // Update the parent folder
+        folder.setParentFolder(newParent);
+
+        // Save changes
+        folderRepository.save(folder);
+
+        // Return updated folder
+        return FolderResponse.builder()
+                .id(folder.getId())
+                .name(folder.getName())
+                .parentFolderId(
+                        newParent != null ? newParent.getId() : null
+                )
+                .children(new ArrayList<>())
+                .build();
+    }
+
+    /**
+     * Updates the display order of multiple folders.
+     *
+     * @param requests List containing folder IDs and their new display order.
+     */
+    public void updateDisplayOrder(List<FolderDisplayOrderRequest> requests) {
+
+        for (FolderDisplayOrderRequest request : requests) {
+
+            // Find folder
+            Folder folder = folderRepository.findById(request.getId())
+                    .orElseThrow(() -> new RuntimeException("Folder not found."));
+
+            // Update display order
+            folder.setDisplayOrder(request.getDisplayOrder());
+
+            // Save updated folder
+            folderRepository.save(folder);
+        }
     }
 }
