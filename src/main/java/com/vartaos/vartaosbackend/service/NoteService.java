@@ -4,11 +4,14 @@ import com.vartaos.vartaosbackend.dto.note.CreateNoteRequest;
 import com.vartaos.vartaosbackend.dto.note.NoteResponse;
 import com.vartaos.vartaosbackend.dto.note.UpdateNoteRequest;
 import com.vartaos.vartaosbackend.dto.note.MoveNoteRequest;
+import com.vartaos.vartaosbackend.dto.note.NoteDisplayOrderRequest;
 import com.vartaos.vartaosbackend.entity.Folder;
 import com.vartaos.vartaosbackend.entity.Note;
 import com.vartaos.vartaosbackend.repository.FolderRepository;
 import com.vartaos.vartaosbackend.repository.NoteRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Service responsible for note-related business logic.
@@ -159,5 +162,26 @@ public class NoteService {
                 .type(note.getType())
                 .folderId(folder.getId())
                 .build();
+    }
+
+    /**
+     * Updates the display order of multiple notes.
+     *
+     * @param requests List containing note IDs and their new display order.
+     */
+    public void updateDisplayOrder(List<NoteDisplayOrderRequest> requests) {
+
+        for (NoteDisplayOrderRequest request : requests) {
+
+            // Find note
+            Note note = noteRepository.findById(request.getId())
+                    .orElseThrow(() -> new RuntimeException("Note not found."));
+
+            // Update display order
+            note.setDisplayOrder(request.getDisplayOrder());
+
+            // Save updated note
+            noteRepository.save(note);
+        }
     }
 }

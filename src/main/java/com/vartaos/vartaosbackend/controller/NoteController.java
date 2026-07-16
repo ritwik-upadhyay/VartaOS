@@ -7,6 +7,9 @@ import com.vartaos.vartaosbackend.dto.note.MoveNoteRequest;
 import com.vartaos.vartaosbackend.service.NoteService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import org.springframework.http.ResponseEntity;
+import com.vartaos.vartaosbackend.dto.note.NoteDisplayOrderRequest;
 
 /**
  * REST controller responsible for note-related APIs.
@@ -86,5 +89,19 @@ public class NoteController {
                                  @RequestBody MoveNoteRequest request) {
 
         return noteService.moveNote(id, request);
+    }
+
+    /**
+     * Updates the display order of multiple notes.
+     *
+     * @param requests List containing note IDs and their new display order.
+     */
+    @PutMapping("/display-order")
+    public ResponseEntity<Void> updateDisplayOrder(
+            @RequestBody List<NoteDisplayOrderRequest> requests) {
+
+        noteService.updateDisplayOrder(requests);
+
+        return ResponseEntity.ok().build();
     }
 }
