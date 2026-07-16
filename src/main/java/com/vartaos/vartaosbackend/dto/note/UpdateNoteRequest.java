@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.vartaos.vartaosbackend.entity.enums.NoteType;
 
 /**
  * Request DTO used to update an existing note.
@@ -27,4 +28,9 @@ public class UpdateNoteRequest {
      * Updated note content.
      */
     private String content;
+
+    /**
+     * Type of the note.
+     */
+    private NoteType type;
 }

@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.vartaos.vartaosbackend.entity.enums.NoteType;
 
 /**
  * Response DTO returned for note operations.
@@ -35,4 +36,9 @@ public class NoteResponse {
      * Folder containing this note.
      */
     private Long folderId;
+
+    /**
+     * Type of the note.
+     */
+    private NoteType type;
 }

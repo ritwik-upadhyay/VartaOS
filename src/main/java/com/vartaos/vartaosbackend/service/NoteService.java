@@ -40,6 +40,7 @@ public class NoteService {
         Note note = Note.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
+                .type(request.getType())
                 .folder(folder)
                 .build();
 
@@ -51,6 +52,7 @@ public class NoteService {
                 .id(note.getId())
                 .title(note.getTitle())
                 .content(note.getContent())
+                .type(note.getType())
                 .folderId(folder.getId())
                 .build();
     }
@@ -72,6 +74,7 @@ public class NoteService {
                 .id(note.getId())
                 .title(note.getTitle())
                 .content(note.getContent())
+                .type(note.getType())
                 .folderId(note.getFolder().getId())
                 .build();
     }
@@ -93,6 +96,7 @@ public class NoteService {
         // Update note details
         note.setTitle(request.getTitle());
         note.setContent(request.getContent());
+        note.setType(request.getType());
 
         // Save updated note
         noteRepository.save(note);
@@ -102,6 +106,7 @@ public class NoteService {
                 .id(note.getId())
                 .title(note.getTitle())
                 .content(note.getContent())
+                .type(note.getType())
                 .folderId(note.getFolder().getId())
                 .build();
     }

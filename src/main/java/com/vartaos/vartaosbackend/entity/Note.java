@@ -1,5 +1,6 @@
 package com.vartaos.vartaosbackend.entity;
 
+import com.vartaos.vartaosbackend.entity.enums.NoteType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -40,6 +41,17 @@ public class Note {
      */
     @Column(columnDefinition = "TEXT")
     private String content;
+
+    /**
+     * Category of the note.
+     *
+     * Used to classify notes such as learning notes,
+     * revision notes, interview questions, etc.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private NoteType type = NoteType.GENERAL;
 
     /**
      * Controls the display order inside a folder.

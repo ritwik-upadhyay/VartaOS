@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.vartaos.vartaosbackend.entity.enums.NoteType;
 
 /**
  * Request DTO used to create a new note.
@@ -32,4 +33,9 @@ public class CreateNoteRequest {
      * Folder in which the note should be created.
      */
     private Long folderId;
+
+    /**
+     * Type of the note.
+     */
+    private NoteType type;
 }
