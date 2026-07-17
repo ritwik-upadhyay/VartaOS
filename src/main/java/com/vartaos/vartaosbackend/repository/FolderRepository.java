@@ -29,5 +29,8 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
      * @param keyword Search keyword.
      * @return Matching folders.
      */
-    List<Folder> findByNameContainingIgnoreCase(String keyword);
+    List<Folder> findByWorkspaceAndNameContainingIgnoreCase(
+            Workspace workspace,
+            String keyword
+    );
 }

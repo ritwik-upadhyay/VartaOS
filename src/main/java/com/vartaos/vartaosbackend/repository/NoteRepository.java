@@ -3,6 +3,7 @@ package com.vartaos.vartaosbackend.repository;
 import com.vartaos.vartaosbackend.entity.Folder;
 import com.vartaos.vartaosbackend.entity.Note;
 import org.springframework.data.jpa.repository.JpaRepository;
+import com.vartaos.vartaosbackend.entity.Workspace;
 
 import java.util.List;
 
@@ -21,29 +22,46 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     List<Note> findByFolder(Folder folder);
 
     /**
-     * Finds notes whose titles contain the given keyword,
+     * Finds notes in a workspace whose titles contain the given keyword,
      * ignoring letter case.
      *
-     * @param keyword Search keyword.
+     * @param workspace Workspace to search within.
+     * @param keyword   Search keyword.
      * @return Matching notes.
      */
-    List<Note> findByTitleContainingIgnoreCase(String keyword);
+    List<Note> findByFolderWorkspaceAndTitleContainingIgnoreCase(
+            Workspace workspace,
+            String keyword
+    );
 
     /**
-     * Finds notes whose content contains the given keyword,
+     * Finds notes in a workspace whose content contains the given keyword,
      * ignoring letter case.
      *
-     * @param keyword Search keyword.
+     * @param workspace Workspace to search within.
+     * @param keyword   Search keyword.
      * @return Matching notes.
      */
-    List<Note> findByContentContainingIgnoreCase(String keyword);
+    List<Note> findByFolderWorkspaceAndContentContainingIgnoreCase(
+            Workspace workspace,
+            String keyword
+    );
 
     /**
-     * Finds notes whose title exactly matches the given keyword,
+     * Finds notes in a workspace whose title exactly matches the given keyword,
      * ignoring letter case.
      *
-     * @param keyword Search keyword.
+     * @param workspace Workspace to search within.
+     * @param keyword   Search keyword.
      * @return Matching notes.
      */
-    List<Note> findByTitleIgnoreCase(String keyword);
+    List<Note> findByFolderWorkspaceAndTitleIgnoreCase(
+            Workspace workspace,
+            String keyword
+    );
+
+    List<Note> findByFolderWorkspaceAndTagsNameContainingIgnoreCase(
+            Workspace workspace,
+            String keyword
+    );
 }

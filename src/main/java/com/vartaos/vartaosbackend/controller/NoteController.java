@@ -4,7 +4,9 @@ import com.vartaos.vartaosbackend.dto.note.CreateNoteRequest;
 import com.vartaos.vartaosbackend.dto.note.NoteResponse;
 import com.vartaos.vartaosbackend.dto.note.UpdateNoteRequest;
 import com.vartaos.vartaosbackend.dto.note.MoveNoteRequest;
+import com.vartaos.vartaosbackend.dto.tag.TagResponse;
 import com.vartaos.vartaosbackend.service.NoteService;
+import com.vartaos.vartaosbackend.service.TagService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -19,12 +21,15 @@ import com.vartaos.vartaosbackend.dto.note.NoteDisplayOrderRequest;
 public class NoteController {
 
     private final NoteService noteService;
+    private final TagService tagService;
 
     /**
      * Constructor injection for NoteService.
      */
-    public NoteController(NoteService noteService) {
+    public NoteController(NoteService noteService,
+                          TagService tagService) {
         this.noteService = noteService;
+        this.tagService = tagService;
     }
 
     /**
@@ -103,5 +108,30 @@ public class NoteController {
         noteService.updateDisplayOrder(requests);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{noteId}/tags/{tagId}")
+    public void assignTagToNote(@PathVariable Long noteId,
+                                @PathVariable Long tagId) {
+
+        tagService.assignTagToNote(noteId, tagId);
+    }
+
+    @DeleteMapping("/{noteId}/tags/{tagId}")
+    public void removeTagFromNote(@PathVariable Long noteId,
+                                  @PathVariable Long tagId) {
+
+        tagService.removeTagFromNote(noteId, tagId);
+    }
+
+    /**
+     * Retrieves all tags assigned to a specific note.
+     *
+     * @param noteId ID of the note.
+     * @return List of tags assigned to the note.
+     */
+    @GetMapping("/{noteId}/tags")
+    public List<TagResponse> getTagsOfNote(@PathVariable Long noteId) {
+        return tagService.getTagsOfNote(noteId);
     }
 }

@@ -7,8 +7,14 @@ import com.vartaos.vartaosbackend.entity.Note;
 import com.vartaos.vartaosbackend.repository.FolderRepository;
 import com.vartaos.vartaosbackend.repository.NoteRepository;
 import com.vartaos.vartaosbackend.dto.note.NoteResponse;
+import com.vartaos.vartaosbackend.repository.UserRepository;
+import com.vartaos.vartaosbackend.repository.WorkspaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.vartaos.vartaosbackend.entity.User;
+import com.vartaos.vartaosbackend.entity.Workspace;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +44,16 @@ public class SearchService {
     private final NoteRepository noteRepository;
 
     /**
+     * Repository for workspace operations.
+     */
+    private final WorkspaceRepository workspaceRepository;
+
+    /**
+     * Repository for user operations.
+     */
+    private final UserRepository userRepository;
+
+    /**
      * Performs a global search across the workspace.
      *
      * Searches:
@@ -62,12 +78,16 @@ public class SearchService {
         // Search matching notes by content
         List<NoteResponse> contentMatches = searchNotesByContent(keyword);
 
+        // Search matching notes by tag
+        List<NoteResponse> tagMatches = searchNotesByTag(keyword);
+
         // Combine note search results
         List<NoteResponse> matchingNotes = new ArrayList<>();
 
         matchingNotes.addAll(exactTitleMatches);
         matchingNotes.addAll(titleMatches);
         matchingNotes.addAll(contentMatches);
+        matchingNotes.addAll(tagMatches);
 
         // Remove duplicate notes
         matchingNotes = removeDuplicateNotes(matchingNotes);
@@ -88,7 +108,9 @@ public class SearchService {
      */
     private List<FolderResponse> searchFolders(String keyword) {
 
-        return folderRepository.findByNameContainingIgnoreCase(keyword)
+        Workspace workspace = getCurrentWorkspace();
+
+        return folderRepository.findByWorkspaceAndNameContainingIgnoreCase(workspace, keyword)
                 .stream()
                 .map(this::mapFolder)
                 .toList();
@@ -103,7 +125,9 @@ public class SearchService {
      */
     private List<NoteResponse> searchNotesByTitle(String keyword) {
 
-        return noteRepository.findByTitleContainingIgnoreCase(keyword)
+        Workspace workspace = getCurrentWorkspace();
+
+        return noteRepository.findByFolderWorkspaceAndTitleContainingIgnoreCase(workspace, keyword)
                 .stream()
                 .map(this::mapNote)
                 .toList();
@@ -118,7 +142,9 @@ public class SearchService {
      */
     private List<NoteResponse> searchNotesByContent(String keyword) {
 
-        return noteRepository.findByContentContainingIgnoreCase(keyword)
+        Workspace workspace = getCurrentWorkspace();
+
+        return noteRepository.findByFolderWorkspaceAndContentContainingIgnoreCase(workspace, keyword)
                 .stream()
                 .map(this::mapNote)
                 .toList();
@@ -188,7 +214,43 @@ public class SearchService {
      */
     private List<NoteResponse> searchExactTitle(String keyword) {
 
-        return noteRepository.findByTitleIgnoreCase(keyword)
+        Workspace workspace = getCurrentWorkspace();
+
+        return noteRepository.findByFolderWorkspaceAndTitleIgnoreCase(workspace, keyword)
+                .stream()
+                .map(this::mapNote)
+                .toList();
+    }
+
+    private Workspace getCurrentWorkspace() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found."));
+
+        return workspaceRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Workspace not found."));
+    }
+
+    /**
+     * Searches for notes whose tags contain
+     * the specified keyword.
+     *
+     * @param keyword Search keyword.
+     * @return List of matching notes.
+     */
+    private List<NoteResponse> searchNotesByTag(String keyword) {
+
+        Workspace workspace = getCurrentWorkspace();
+
+        return noteRepository.findByFolderWorkspaceAndTagsNameContainingIgnoreCase(
+                        workspace,
+                        keyword
+                )
                 .stream()
                 .map(this::mapNote)
                 .toList();
