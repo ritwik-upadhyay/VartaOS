@@ -96,4 +96,8 @@ public class Folder {
     )
     @Builder.Default
     private List<Note> notes = new ArrayList<>();
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean completed = false;
 }

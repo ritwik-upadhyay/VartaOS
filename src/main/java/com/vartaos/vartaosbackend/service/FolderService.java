@@ -29,13 +29,16 @@ public class FolderService {
     private final FolderRepository folderRepository;
     private final WorkspaceRepository workspaceRepository;
     private final UserRepository userRepository;
+    private final ProgressService progressService;
 
     public FolderService(FolderRepository folderRepository,
                          WorkspaceRepository workspaceRepository,
-                         UserRepository userRepository) {
+                         UserRepository userRepository,
+                         ProgressService progressService) {
         this.folderRepository = folderRepository;
         this.workspaceRepository = workspaceRepository;
         this.userRepository = userRepository;
+        this.progressService = progressService;
     }
 
     /**
@@ -73,6 +76,8 @@ public class FolderService {
 
         // Save folder
         folderRepository.save(folder);
+
+        progressService.refreshWorkspaceProgress(workspace);
 
         // Return response
         return FolderResponse.builder()

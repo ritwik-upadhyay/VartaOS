@@ -8,6 +8,8 @@ import com.vartaos.vartaosbackend.entity.Workspace;
 import com.vartaos.vartaosbackend.exception.AuthenticationException;
 import com.vartaos.vartaosbackend.repository.UserRepository;
 import com.vartaos.vartaosbackend.repository.WorkspaceRepository;
+import com.vartaos.vartaosbackend.entity.Progress;
+import com.vartaos.vartaosbackend.repository.ProgressRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,16 +25,19 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final WorkspaceRepository workspaceRepository;
+    private final ProgressRepository progressRepository;
 
 
     public AuthenticationService(UserRepository userRepository,
                                  PasswordEncoder passwordEncoder,
                                  JwtService jwtService,
-                                 WorkspaceRepository workspaceRepository) {
+                                 WorkspaceRepository workspaceRepository,
+                                 ProgressRepository progressRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.workspaceRepository = workspaceRepository;
+        this.progressRepository = progressRepository;
     }
 
     public AuthenticationResponse register(RegisterRequest request) {
@@ -67,6 +72,12 @@ public class AuthenticationService {
                 .build();
 
         workspaceRepository.save(workspace);
+
+        Progress progress = Progress.builder()
+                .workspace(workspace)
+                .build();
+
+        progressRepository.save(progress);
 
         //Return response
         return AuthenticationResponse.builder()
