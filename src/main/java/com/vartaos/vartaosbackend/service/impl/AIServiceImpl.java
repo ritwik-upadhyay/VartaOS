@@ -1,11 +1,13 @@
 package com.vartaos.vartaosbackend.service.impl;
 
+import com.vartaos.vartaosbackend.ai.context.AIContext;
+import com.vartaos.vartaosbackend.ai.context.ContextBuilder;
+import com.vartaos.vartaosbackend.ai.prompt.PromptBuilder;
 import com.vartaos.vartaosbackend.dto.ai.ChatRequest;
 import com.vartaos.vartaosbackend.dto.ai.ChatResponse;
 import com.vartaos.vartaosbackend.service.AIService;
+import com.vartaos.vartaosbackend.service.provider.AIProvider;
 import lombok.RequiredArgsConstructor;
-import com.google.genai.Client;
-import com.google.genai.types.GenerateContentResponse;
 import com.vartaos.vartaosbackend.entity.AIConversation;
 import com.vartaos.vartaosbackend.entity.AIMessage;
 import com.vartaos.vartaosbackend.entity.enums.MessageSender;
@@ -18,11 +20,10 @@ import com.vartaos.vartaosbackend.repository.WorkspaceRepository;
 import com.vartaos.vartaosbackend.repository.UserRepository;
 import com.vartaos.vartaosbackend.entity.User;
 import org.springframework.security.core.Authentication;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.vartaos.vartaosbackend.dto.ai.GeminiChatResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.vartaos.vartaosbackend.dto.ai.MessageResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 import java.util.List;
 
@@ -38,8 +39,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AIServiceImpl implements AIService {
 
-    private final Client geminiClient;
-    private final ObjectMapper objectMapper;
+    private final AIProvider aiProvider;
+    private final PromptBuilder promptBuilder;
+    private final ContextBuilder contextBuilder;
 
     private final AIConversationRepository conversationRepository;
     private final AIMessageRepository messageRepository;
@@ -55,11 +57,10 @@ public class AIServiceImpl implements AIService {
     @Override
     public ChatResponse chat(ChatRequest request) {
 
-        AIConversation conversation = conversationRepository
-                .findById(request.getConversationId())
-                .orElseThrow(() ->
-                        new RuntimeException("Conversation not found.")
-                );
+
+        AIContext context = contextBuilder.build(request);
+
+        AIConversation conversation = context.getConversation();
 
         AIMessage userMessage = AIMessage.builder()
                 .conversation(conversation)
@@ -69,52 +70,14 @@ public class AIServiceImpl implements AIService {
 
         messageRepository.save(userMessage);
 
-        String prompt = """
-                You are the AI assistant for VartaOS.
-                
-                Respond ONLY with valid JSON.
-                
-                Use exactly this structure:
-                
-                {
-                  "title": "Short conversation title (maximum 5 words)",
-                  "response": "Your helpful answer"
-                }
-                
-                Rules:
-                - Return only JSON.
-                - Do not use markdown.
-                - Do not wrap the JSON inside ``` blocks.
-                - Keep the title concise.
-                - The response field should contain the complete answer.
-                
-                User message:
-                %s
-                """.formatted(request.getMessage());
 
-        GenerateContentResponse response =
-                geminiClient.models.generateContent(
-                        "gemini-2.5-flash",
-                        prompt,
-                        null
-                );
+        String prompt = promptBuilder.build(context);
 
-        String rawResponse = response.text();
+        GeminiChatResponse geminiResponse = aiProvider.chat(prompt);
 
-        GeminiChatResponse geminiResponse;
-
-        try {
-            geminiResponse = objectMapper.readValue(
-                    rawResponse,
-                    GeminiChatResponse.class
-            );
-
-            if ("New Chat".equals(conversation.getTitle())) {
-                conversation.setTitle(geminiResponse.getTitle());
-                conversationRepository.save(conversation);
-            }
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse Gemini response.", e);
+        if ("New Chat".equals(conversation.getTitle())) {
+            conversation.setTitle(geminiResponse.getTitle());
+            conversationRepository.save(conversation);
         }
 
         System.out.println("Title: " + geminiResponse.getTitle());
@@ -171,6 +134,7 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public List<MessageResponse> getConversationMessages(Long conversationId) {
+
 
         AIConversation conversation = conversationRepository
                 .findById(conversationId)
