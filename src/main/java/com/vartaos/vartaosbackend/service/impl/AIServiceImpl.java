@@ -2,7 +2,7 @@ package com.vartaos.vartaosbackend.service.impl;
 
 import com.vartaos.vartaosbackend.ai.context.AIContext;
 import com.vartaos.vartaosbackend.ai.context.ContextBuilder;
-import com.vartaos.vartaosbackend.ai.prompt.PromptBuilder;
+import com.vartaos.vartaosbackend.ai.prompt.TutorPromptBuilder;
 import com.vartaos.vartaosbackend.dto.ai.ChatRequest;
 import com.vartaos.vartaosbackend.dto.ai.ChatResponse;
 import com.vartaos.vartaosbackend.service.AIService;
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Service;
 public class AIServiceImpl implements AIService {
 
     private final AIProvider aiProvider;
-    private final PromptBuilder promptBuilder;
+    private final TutorPromptBuilder promptBuilder;
     private final ContextBuilder contextBuilder;
 
     private final AIConversationRepository conversationRepository;

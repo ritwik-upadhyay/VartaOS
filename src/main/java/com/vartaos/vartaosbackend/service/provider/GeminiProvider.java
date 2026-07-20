@@ -42,4 +42,17 @@ public class GeminiProvider implements AIProvider {
 
         }
     }
+
+    @Override
+    public String generateText(String prompt) {
+
+        GenerateContentResponse response =
+                geminiClient.models.generateContent(
+                        "gemini-2.5-flash",
+                        prompt,
+                        null
+                );
+
+        return response.text();
+    }
 }

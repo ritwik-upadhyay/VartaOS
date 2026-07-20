@@ -1,6 +1,8 @@
 package com.vartaos.vartaosbackend.ai.prompt;
 
 import com.vartaos.vartaosbackend.ai.context.AIContext;
+import com.vartaos.vartaosbackend.entity.AIMessage;
+import com.vartaos.vartaosbackend.entity.enums.MessageSender;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -9,29 +11,52 @@ public class TutorPromptBuilder implements PromptBuilder {
     @Override
     public String build(AIContext context) {
 
+        StringBuilder history = new StringBuilder();
+
+        for (AIMessage message : context.getConversationHistory()) {
+
+            if (message.getSender() == MessageSender.USER) {
+                history.append("User: ");
+            } else {
+                history.append("Assistant: ");
+            }
+
+            history.append(message.getContent())
+                    .append("\n\n");
+        }
+
         return """
-                You are the AI tutor for VartaOS.
+            You are the AI tutor for VartaOS.
 
-                Respond ONLY with valid JSON.
+            You are helping a computer science student.
 
-                Use exactly this structure:
+            Use the previous conversation to understand follow-up
+            questions such as "it", "that", "this", "again", etc.
 
-                {
-                  "title": "Short conversation title (maximum 5 words)",
-                  "response": "Your helpful answer"
-                }
+            Respond ONLY with valid JSON.
+            
+            Never include explanations outside the JSON.
+            Never use Markdown.
+            Never wrap the response in ```json.
+            Never include additional text before or after the JSON.
+                
+            Return exactly:
+           
+            {
+              "title": "Short conversation title (maximum 5 words)",
+              "response": "Your helpful answer"
+            }
 
-                Rules:
-                - Return only JSON.
-                - Do not use markdown.
-                - Do not wrap the JSON inside ``` blocks.
-                - Keep the title concise.
-                - The response field should contain the complete answer.
+            Previous Conversation:
+            %s
 
-                User message:
-                %s
-                """
-                .formatted(context.getUserPrompt());
+            Current User Message:
+            %s
+            """
+                .formatted(
+                        history,
+                        context.getUserPrompt()
+                );
 
     }
 

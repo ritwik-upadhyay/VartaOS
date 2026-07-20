@@ -6,4 +6,5 @@ public interface AIProvider {
 
     GeminiChatResponse chat(String prompt);
 
+    String generateText(String prompt);
 }

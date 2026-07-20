@@ -6,8 +6,11 @@ import com.vartaos.vartaosbackend.entity.AIMessage;
 import com.vartaos.vartaosbackend.repository.AIConversationRepository;
 import com.vartaos.vartaosbackend.repository.AIMessageRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -25,8 +28,17 @@ public class ContextBuilder {
                                 new RuntimeException("Conversation not found.")
                         );
 
+        Pageable pageable = PageRequest.of(0, 20);
+
         List<AIMessage> history =
-                messageRepository.findByConversationOrderByCreatedAtAsc(conversation);
+                messageRepository
+                        .findByConversationOrderByCreatedAtDesc(
+                                conversation,
+                                pageable
+                        )
+                        .getContent();
+
+        Collections.reverse(history);
 
         return AIContext.builder()
                 .conversation(conversation)

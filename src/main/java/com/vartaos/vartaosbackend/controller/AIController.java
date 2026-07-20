@@ -2,11 +2,14 @@ package com.vartaos.vartaosbackend.controller;
 
 import com.vartaos.vartaosbackend.dto.ai.ChatRequest;
 import com.vartaos.vartaosbackend.dto.ai.ChatResponse;
+import com.vartaos.vartaosbackend.dto.response.ApiResponse;
+import com.vartaos.vartaosbackend.service.AINoteGenerationService;
 import com.vartaos.vartaosbackend.service.AIService;
 import com.vartaos.vartaosbackend.dto.ai.CreateConversationRequest;
 import com.vartaos.vartaosbackend.dto.ai.ConversationResponse;
 import lombok.RequiredArgsConstructor;
 import com.vartaos.vartaosbackend.dto.ai.MessageResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -28,6 +31,9 @@ public class AIController {
      * Service responsible for AI interactions.
      */
     private final AIService aiService;
+
+    private final AINoteGenerationService aiNoteGenerationService;
+
 
     /**
      * Sends a message to Gemini and returns the response.
@@ -75,5 +81,29 @@ public class AIController {
     public List<ConversationResponse> getConversations() {
 
         return aiService.getConversations();
+    }
+
+    @PostMapping("/folders/{folderId}/generate-notes")
+    public ResponseEntity<ApiResponse> generateNotes(
+            @PathVariable Long folderId
+    ) {
+
+        aiNoteGenerationService.generateNotes(folderId);
+
+        return ResponseEntity.ok(
+                new ApiResponse("Notes generated successfully.")
+        );
+    }
+
+    @PatchMapping("/folders/{folderId}/complete")
+    public ResponseEntity<ApiResponse> markFolderCompleted(
+            @PathVariable Long folderId
+    ) {
+
+        aiNoteGenerationService.markFolderCompleted(folderId);
+
+        return ResponseEntity.ok(
+                new ApiResponse("Topic marked as completed.")
+        );
     }
 }
