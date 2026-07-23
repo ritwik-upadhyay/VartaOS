@@ -1,6 +1,7 @@
 package com.vartaos.vartaosbackend.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.vartaos.vartaosbackend.entity.enums.AIProviderType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -44,6 +45,14 @@ public class User {
     @Column(name = "password", nullable = false, length = 255)
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "preferred_ai_provider", length = 32)
+    private AIProviderType preferredAiProvider = AIProviderType.GEMINI;
+
+    @Column(name = "preferred_ai_model", length = 120)
+    private String preferredAiModel;
 
     /**
      * Workspace owned by the user.

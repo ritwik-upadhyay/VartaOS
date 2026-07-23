@@ -2,10 +2,12 @@ package com.vartaos.vartaosbackend.repository;
 
 import com.vartaos.vartaosbackend.entity.Folder;
 import com.vartaos.vartaosbackend.entity.Note;
+import com.vartaos.vartaosbackend.entity.enums.NoteType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.vartaos.vartaosbackend.entity.Workspace;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository responsible for database operations
@@ -20,6 +22,12 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
      * @return List of notes.
      */
     List<Note> findByFolder(Folder folder);
+
+    Optional<Note> findByFolderAndType(Folder folder,
+                                       NoteType type);
+
+    Optional<Note> findByFolderAndTitleIgnoreCase(Folder folder,
+                                                  String title);
 
     /**
      * Finds notes in a workspace whose titles contain the given keyword,

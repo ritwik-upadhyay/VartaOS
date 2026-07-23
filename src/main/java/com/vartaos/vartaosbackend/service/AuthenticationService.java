@@ -5,6 +5,7 @@ import com.vartaos.vartaosbackend.dto.auth.LoginRequest;
 import com.vartaos.vartaosbackend.dto.auth.RegisterRequest;
 import com.vartaos.vartaosbackend.entity.User;
 import com.vartaos.vartaosbackend.entity.Workspace;
+import com.vartaos.vartaosbackend.entity.enums.AIProviderType;
 import com.vartaos.vartaosbackend.exception.AuthenticationException;
 import com.vartaos.vartaosbackend.repository.UserRepository;
 import com.vartaos.vartaosbackend.repository.WorkspaceRepository;
@@ -57,6 +58,7 @@ public class AuthenticationService {
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .preferredAiProvider(AIProviderType.GEMINI)
                 .build();
 
         //Save to database

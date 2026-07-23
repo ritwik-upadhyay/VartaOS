@@ -2,11 +2,15 @@ package com.vartaos.vartaosbackend.service.impl;
 
 import com.vartaos.vartaosbackend.ai.context.AIContext;
 import com.vartaos.vartaosbackend.ai.context.ContextBuilder;
+import com.vartaos.vartaosbackend.ai.prompt.ConversationTitlePromptBuilder;
 import com.vartaos.vartaosbackend.ai.prompt.TutorPromptBuilder;
 import com.vartaos.vartaosbackend.dto.ai.ChatRequest;
 import com.vartaos.vartaosbackend.dto.ai.ChatResponse;
 import com.vartaos.vartaosbackend.service.AIService;
+import com.vartaos.vartaosbackend.service.CurrentUserService;
 import com.vartaos.vartaosbackend.service.provider.AIProvider;
+import com.vartaos.vartaosbackend.service.provider.AIProviderRegistry;
+import com.vartaos.vartaosbackend.service.provider.AITask;
 import lombok.RequiredArgsConstructor;
 import com.vartaos.vartaosbackend.entity.AIConversation;
 import com.vartaos.vartaosbackend.entity.AIMessage;
@@ -16,12 +20,7 @@ import com.vartaos.vartaosbackend.repository.AIMessageRepository;
 import com.vartaos.vartaosbackend.dto.ai.ConversationResponse;
 import com.vartaos.vartaosbackend.dto.ai.CreateConversationRequest;
 import com.vartaos.vartaosbackend.entity.Workspace;
-import com.vartaos.vartaosbackend.repository.WorkspaceRepository;
-import com.vartaos.vartaosbackend.repository.UserRepository;
 import com.vartaos.vartaosbackend.entity.User;
-import org.springframework.security.core.Authentication;
-import com.vartaos.vartaosbackend.dto.ai.GeminiChatResponse;
-import org.springframework.security.core.context.SecurityContextHolder;
 import com.vartaos.vartaosbackend.dto.ai.MessageResponse;
 
 
@@ -39,15 +38,15 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AIServiceImpl implements AIService {
 
-    private final AIProvider aiProvider;
+    private final AIProviderRegistry aiProviderRegistry;
     private final TutorPromptBuilder promptBuilder;
+    private final ConversationTitlePromptBuilder conversationTitlePromptBuilder;
     private final ContextBuilder contextBuilder;
 
     private final AIConversationRepository conversationRepository;
     private final AIMessageRepository messageRepository;
 
-    private final WorkspaceRepository workspaceRepository;
-    private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
 
     /**
      * Sends a message to the AI.
@@ -73,26 +72,29 @@ public class AIServiceImpl implements AIService {
 
         String prompt = promptBuilder.build(context);
 
-        GeminiChatResponse geminiResponse = aiProvider.chat(prompt);
+        User user = currentUserService.getCurrentUser();
+        AIProvider aiProvider = aiProviderRegistry.resolveProvider(user);
+        String model = aiProviderRegistry.resolveModel(user, aiProvider);
 
-        if ("New Chat".equals(conversation.getTitle())) {
-            conversation.setTitle(geminiResponse.getTitle());
+        String aiResponse = aiProvider.generate(AITask.CHAT, prompt, model);
+
+        if (shouldGenerateTitle(conversation)) {
+            String titlePrompt = conversationTitlePromptBuilder.build(context, aiResponse);
+            String generatedTitle = aiProvider.generate(AITask.CHAT_TITLE, titlePrompt, model);
+            conversation.setTitle(normalizeConversationTitle(generatedTitle));
             conversationRepository.save(conversation);
         }
-
-        System.out.println("Title: " + geminiResponse.getTitle());
-        System.out.println("Response: " + geminiResponse.getResponse());
 
         AIMessage aiMessage = AIMessage.builder()
                 .conversation(conversation)
                 .sender(MessageSender.AI)
-                .content(geminiResponse.getResponse())
+                .content(aiResponse)
                 .build();
 
         messageRepository.save(aiMessage);
 
         return ChatResponse.builder()
-                .response(geminiResponse.getResponse())
+                .response(aiResponse)
                 .build();
 
     }
@@ -100,20 +102,7 @@ public class AIServiceImpl implements AIService {
     @Override
     public ConversationResponse createConversation(CreateConversationRequest request) {
 
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found.")
-                );
-
-        Workspace workspace = workspaceRepository.findByUser(user)
-                .orElseThrow(() ->
-                        new RuntimeException("Workspace not found.")
-                );
+        Workspace workspace = currentUserService.getCurrentWorkspace();
 
         AIConversation conversation = AIConversation.builder()
                 .title(
@@ -156,20 +145,7 @@ public class AIServiceImpl implements AIService {
     @Override
     public List<ConversationResponse> getConversations() {
 
-        Authentication authentication =
-                SecurityContextHolder.getContext().getAuthentication();
-
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found.")
-                );
-
-        Workspace workspace = workspaceRepository.findByUser(user)
-                .orElseThrow(() ->
-                        new RuntimeException("Workspace not found.")
-                );
+        Workspace workspace = currentUserService.getCurrentWorkspace();
 
         return conversationRepository
                 .findByWorkspaceOrderByUpdatedAtDesc(workspace)
@@ -179,5 +155,34 @@ public class AIServiceImpl implements AIService {
                         .title(conversation.getTitle())
                         .build())
                 .toList();
+    }
+
+    private boolean shouldGenerateTitle(AIConversation conversation) {
+        String title = conversation.getTitle();
+        return title == null
+                || title.isBlank()
+                || "New Chat".equalsIgnoreCase(title)
+                || "AI Discussion".equalsIgnoreCase(title);
+    }
+
+    private String normalizeConversationTitle(String generatedTitle) {
+
+        if (generatedTitle == null || generatedTitle.isBlank()) {
+            return "AI Discussion";
+        }
+
+        String normalized = generatedTitle
+                .replace("\"", "")
+                .replace("`", "")
+                .trim();
+
+        String singleLine = normalized.lines()
+                .findFirst()
+                .orElse("AI Discussion")
+                .trim();
+
+        return singleLine.isBlank()
+                ? "AI Discussion"
+                : singleLine;
     }
 }

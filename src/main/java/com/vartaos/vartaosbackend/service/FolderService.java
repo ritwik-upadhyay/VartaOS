@@ -86,6 +86,7 @@ public class FolderService {
                 .parentFolderId(
                         parentFolder != null ? parentFolder.getId() : null
                 )
+                .completed(folder.getCompleted())
                 .build();
     }
 
@@ -118,6 +119,7 @@ public class FolderService {
                                 ? folder.getParentFolder().getId()
                                 : null
                 )
+                .completed(folder.getCompleted())
                 .build();
     }
 
@@ -186,6 +188,7 @@ public class FolderService {
                                 ? folder.getParentFolder().getId()
                                 : null
                 )
+                .completed(folder.getCompleted())
                 .children(children)
                 .build();
     }
@@ -225,6 +228,7 @@ public class FolderService {
                 .parentFolderId(
                         newParent != null ? newParent.getId() : null
                 )
+                .completed(folder.getCompleted())
                 .children(new ArrayList<>())
                 .build();
     }

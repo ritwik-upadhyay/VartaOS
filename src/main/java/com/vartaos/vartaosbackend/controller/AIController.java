@@ -2,11 +2,16 @@ package com.vartaos.vartaosbackend.controller;
 
 import com.vartaos.vartaosbackend.dto.ai.ChatRequest;
 import com.vartaos.vartaosbackend.dto.ai.ChatResponse;
+import com.vartaos.vartaosbackend.dto.ai.AIProviderOptionResponse;
+import com.vartaos.vartaosbackend.dto.ai.AISettingsResponse;
 import com.vartaos.vartaosbackend.dto.response.ApiResponse;
 import com.vartaos.vartaosbackend.service.AINoteGenerationService;
 import com.vartaos.vartaosbackend.service.AIService;
+import com.vartaos.vartaosbackend.service.AISettingsService;
 import com.vartaos.vartaosbackend.dto.ai.CreateConversationRequest;
 import com.vartaos.vartaosbackend.dto.ai.ConversationResponse;
+import com.vartaos.vartaosbackend.dto.ai.UpdateAISettingsRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import com.vartaos.vartaosbackend.dto.ai.MessageResponse;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +39,7 @@ public class AIController {
 
     private final AINoteGenerationService aiNoteGenerationService;
 
+    private final AISettingsService aiSettingsService;
 
     /**
      * Sends a message to Gemini and returns the response.
@@ -81,6 +87,22 @@ public class AIController {
     public List<ConversationResponse> getConversations() {
 
         return aiService.getConversations();
+    }
+
+    @GetMapping("/settings")
+    public AISettingsResponse getAiSettings() {
+        return aiSettingsService.getSettings();
+    }
+
+    @PutMapping("/settings")
+    public AISettingsResponse updateAiSettings(
+            @Valid @RequestBody UpdateAISettingsRequest request) {
+        return aiSettingsService.updateSettings(request);
+    }
+
+    @GetMapping("/providers")
+    public List<AIProviderOptionResponse> getAiProviders() {
+        return aiSettingsService.getProviderOptions();
     }
 
     @PostMapping("/folders/{folderId}/generate-notes")

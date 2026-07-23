@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,13 +31,14 @@ public class ContextBuilder {
 
         Pageable pageable = PageRequest.of(0, 20);
 
-        List<AIMessage> history =
+        List<AIMessage> history = new ArrayList<>(
                 messageRepository
                         .findByConversationOrderByCreatedAtDesc(
                                 conversation,
                                 pageable
                         )
-                        .getContent();
+                        .getContent()
+        );
 
         Collections.reverse(history);
 

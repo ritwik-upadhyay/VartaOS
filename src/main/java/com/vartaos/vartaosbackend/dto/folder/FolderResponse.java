@@ -35,6 +35,11 @@ public class FolderResponse {
     private Long parentFolderId;
 
     /**
+     * Whether this folder has been completed.
+     */
+    private Boolean completed;
+
+    /**
      * Child folders of this folder.
      */
     private List<FolderResponse> children;
