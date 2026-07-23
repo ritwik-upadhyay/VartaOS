@@ -1,0 +1,14 @@
+target/
+.git/
+.idea/
+.vscode/
+node_modules/
+logs/
+*.log
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*.tmp
+*.temp
