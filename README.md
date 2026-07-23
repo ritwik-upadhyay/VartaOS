@@ -1,174 +1,227 @@
-# VartaOS
+# VartaOS Backend
 
-> **An AI-Powered Career Operating System for Students**
+Spring Boot backend for **VartaOS**, a placement operating system for Computer Science students.
 
-VartaOS is a desktop-first productivity platform that combines **knowledge management**, **placement preparation**, **AI-assisted learning**, and **career planning** into a single unified workspace.
+This service provides authentication, workspace management, folder and note operations, search, progress tracking, tags, and AI-powered note generation/chat capabilities.
 
-Rather than being just another note-taking application, VartaOS acts as a personalized operating system for students preparing for software engineering careers by integrating structured learning workflows with an intelligent AI mentor.
-
-> 🚧 **Status:** Under Active Development
-
----
-
-## ✨ Features
-
-- 🧠 AI-powered learning assistant
-- 📚 Structured knowledge management
-- 📝 Intelligent note generation
-- 🎯 Placement preparation workspace
-- 📊 Progress tracking and analytics
-- 🔍 Global intelligent search
-- 📂 Hierarchical folder-based organization
-- 💬 AI conversations with contextual memory
-- 📖 Automatic revision notes
-- ❓ Interview question generation
-- 🗓️ Personalized study plans
-
----
-
-## 🛠 Tech Stack
-
-### Backend
+## Tech Stack
 
 - Java 21
-- Spring Boot
+- Spring Boot 4.1.0
 - Spring Security
 - Spring Data JPA
 - PostgreSQL
-- Hibernate
-- Maven
+- JWT
+- Maven Wrapper
+- Google Gemini SDK
+- Ollama integration
 
-### Frontend
+## Features
 
-- React
-- Electron
+- JWT-based authentication
+- User registration and login
+- Automatic default workspace creation for new users
+- Hierarchical folder tree management
+- Note CRUD and note movement
+- Note tagging and tag-based note lookup
+- Workspace-wide search
+- Topic completion and progress updates
+- AI chat and AI conversation history
+- AI-generated learning material, revision notes, interview questions, resources, and tags
+- User AI provider settings with Gemini and Ollama support
+- Production-ready Dockerfile for Render-style deployment
+
+## Project Structure
+
+```text
+src/main/java/com/vartaos/vartaosbackend/
+  ai/                 Prompt builders and AI context helpers
+  config/             Spring configuration
+  controller/         REST API controllers
+  dto/                Request and response DTOs
+  entity/             JPA entities
+  exception/          Centralized error handling
+  filter/             Security filters
+  repository/         Spring Data repositories
+  service/            Business services
+src/main/resources/
+  application.yaml    Environment-driven application config
+```
+
+## Requirements
+
+- Java 21
+- Maven 3.9+ or the included Maven Wrapper
+- PostgreSQL database
+
+## Environment Variables
+
+Set these before running the application:
+
+```env
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/vartaos
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=postgres
+JWT_SECRET=replace-with-a-long-secret
+JWT_EXPIRATION=86400000
+FRONTEND_URL=http://localhost:5173
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-2.5-flash
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=
+```
+
+## Running Locally
+
+Using Maven Wrapper:
+
+```bash
+./mvnw spring-boot:run
+```
+
+Or build and run the jar:
+
+```bash
+./mvnw clean package
+java -jar target/vartaos-backend-0.0.1-SNAPSHOT.jar
+```
+
+Default local backend URL:
+
+- `http://localhost:8080`
+
+## API Overview
+
+### Authentication
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+
+### Workspace
+
+- `GET /api/workspaces`
+- `PUT /api/workspaces`
+
+### Folders
+
+- `GET /api/folders`
+- `POST /api/folders`
+- `PUT /api/folders/{folderId}`
+- `DELETE /api/folders/{folderId}`
+- `PUT /api/folders/{id}/move`
+- `PUT /api/folders/display-order`
+
+### Notes
+
+- `POST /api/notes`
+- `GET /api/notes/{id}`
+- `PUT /api/notes/{id}`
+- `DELETE /api/notes/{id}`
+- `PUT /api/notes/{id}/move`
+- `PUT /api/notes/display-order`
+- `GET /api/notes/{noteId}/tags`
+- `POST /api/notes/{noteId}/tags/{tagId}`
+- `DELETE /api/notes/{noteId}/tags/{tagId}`
+
+### Tags
+
+- `GET /api/tags`
+- `POST /api/tags`
+- `PUT /api/tags/{tagId}`
+- `DELETE /api/tags/{tagId}`
+- `GET /api/tags/{tagId}/notes`
+
+### Search
+
+- `GET /api/search?query=...`
+
+### Progress
+
+- `PATCH /api/progress/complete/{folderId}`
 
 ### AI
 
-- Google Gemini API
+- `POST /api/ai/chat`
+- `POST /api/ai/conversations`
+- `GET /api/ai/conversations`
+- `GET /api/ai/conversations/{conversationId}/messages`
+- `GET /api/ai/settings`
+- `PUT /api/ai/settings`
+- `GET /api/ai/providers`
+- `POST /api/ai/folders/{folderId}/generate-notes`
+- `PATCH /api/ai/folders/{folderId}/complete`
 
-### Developer Tools
+### Health / Test
 
-- Git
-- GitHub
-- IntelliJ IDEA
-- Postman
+- `GET /api/test`
 
----
+## Security
 
-## 📁 Project Structure
+- Public routes:
+  - `/api/auth/**`
+  - `/error`
+- All other routes require JWT authentication.
+- CORS is configured from `FRONTEND_URL` and supports Vercel/localhost flows.
 
-```text
-VartaOS/
-│
-├── vartaos-backend/
-│   ├── controller/
-│   ├── service/
-│   ├── repository/
-│   ├── entity/
-│   ├── dto/
-│   ├── security/
-│   ├── config/
-│   ├── exception/
-│   └── util/
-│
-├── vartaos-frontend/
-│
-├── docs/
-│
-└── README.md
+## Database
+
+The application uses PostgreSQL through Spring Data JPA.
+
+Current JPA setting:
+
+```yaml
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
 ```
 
----
+## Docker
 
-## 🏗 Architecture
+Build and run with Docker:
 
-VartaOS follows a layered architecture based on enterprise software engineering principles.
-
-```text
-Presentation Layer
-        │
-REST Controllers
-        │
-Service Layer
-        │
-Repository Layer
-        │
-PostgreSQL Database
+```bash
+docker build -t vartaos-backend .
+docker run --rm -p 8080:8080 \
+  -e PORT=8080 \
+  -e SPRING_DATASOURCE_URL=... \
+  -e SPRING_DATASOURCE_USERNAME=... \
+  -e SPRING_DATASOURCE_PASSWORD=... \
+  -e JWT_SECRET=... \
+  -e JWT_EXPIRATION=86400000 \
+  -e FRONTEND_URL=http://localhost:5173 \
+  vartaos-backend
 ```
 
-The application follows:
+The Docker image starts with:
 
-- Layered Architecture
-- SOLID Principles
-- RESTful API Design
-- JWT Authentication
-- Role-Based Authorization
+```bash
+java -Dserver.port=${PORT:-8080} -jar /app/app.jar
+```
 
----
+## Deployment
 
-## 🚀 Current Progress
+### Render / Railway
 
-- ✅ Backend project initialized
-- ✅ PostgreSQL integration completed
-- ✅ User entity implemented
-- ✅ Hibernate ORM configured
-- 🚧 Authentication module in progress
-- ⏳ Workspace module
-- ⏳ Folder module
-- ⏳ Note module
-- ⏳ AI integration
-- ⏳ Desktop application
+Recommended:
 
----
+- Build Command: `./mvnw -DskipTests package`
+- Start Command: `java -Dserver.port=$PORT -jar target/vartaos-backend-0.0.1-SNAPSHOT.jar`
 
-## 🎯 Project Goals
+Required environment variables:
 
-VartaOS aims to become a complete career operating system capable of helping students:
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+- `JWT_SECRET`
+- `JWT_EXPIRATION`
+- `FRONTEND_URL`
+- `GEMINI_API_KEY` (for Gemini)
+- `GEMINI_MODEL` (optional)
+- `OLLAMA_BASE_URL` (only when using Ollama)
+- `OLLAMA_MODEL` (when using Ollama)
 
-- Organize technical knowledge
-- Track placement preparation
-- Learn with AI assistance
-- Prepare for coding interviews
-- Generate revision material
-- Maintain long-term learning workflows
+## Repository
 
----
-
-## 🖼 Planned Modules
-
-- Authentication
-- Workspace
-- Folder Management
-- Note Management
-- Search Engine
-- Progress Tracking
-- AI Assistant
-- Mock Interviews
-- Study Planner
-- Settings
-
----
-
-## 🤝 Contributing
-
-This project is currently under active development and is not accepting external contributions.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
----
-
-## 👨‍💻 Author
-
-**Ritwik Upadhyay**
-
-- GitHub: https://github.com/ritwik-upadhyay
-- LinkedIn: https://linkedin.com/in/ritwik-upadhyay-79317828a
-
----
-
-> **"Build your knowledge. Track your growth. Let AI guide your journey."**
+- Backend repo: [ritwik-upadhyay/VartaOS](https://github.com/ritwik-upadhyay/VartaOS)
+- Frontend repo: [ritwik-upadhyay/VartaOS-Frontend](https://github.com/ritwik-upadhyay/VartaOS-Frontend)
